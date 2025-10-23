@@ -47,6 +47,11 @@ body { min-height: 100vh; -webkit-overflow-scrolling: touch; }
     will-change: bottom, transform;
 }
 
+#fixed-bar.keyboard-open{
+    border-top: 1px solid rgba(0,0,0,0.06);
+    padding-bottom: 6px; /* small extra space when keyboard is present */
+}
+
 #fixed-bar .input-wrap {
     flex: 1 1 auto;
 }
