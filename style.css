@@ -1,5 +1,6 @@
 :root{
     --gap: 8px;
+    --safe-bottom: env(safe-area-inset-bottom);
 }
 
 *{box-sizing: border-box}
@@ -27,11 +28,14 @@ header, .intro{
     display:flex;
     width:100%;
     gap:var(--gap);
+    flex-wrap:nowrap; /* keep columns side-by-side */
+    -webkit-overflow-scrolling: touch;
 }
 
 .column{
-    flex:1 1 0;
+    flex:1 1 0; /* equal columns so all three are visible side-by-side on desktop */
     min-width:0;
+    max-width:33.333%;
     position:relative;
     color:#fff;
     display:flex;
@@ -56,8 +60,11 @@ header, .intro{
 .lvh-unit{background:#3CB371; height:100lvh}
 .dvh-unit{background:#4169E1; height:100dvh}
 
+/* panel internal overlay removed — using fixed overlays at viewport bottom */
+
 /* 固定オーバーレイ（上部に被せるバー） */
-#overlays{position:fixed;left:0;right:0;bottom:0;height:auto;pointer-events:none}
+.overlays-wrapper{position:fixed;left:0;right:0;bottom:0;height:auto;pointer-events:none}
+#overlays{position:relative}
 .overlay{
     position:fixed;
     pointer-events:none;
@@ -70,6 +77,7 @@ header, .intro{
     transform:translateY(0);
     transition:bottom 200ms ease, left 200ms ease, width 200ms ease;
     z-index:2147483000; /* very high to avoid being clipped */
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
 }
 
 .overlay-vh{background:rgba(0,0,0,0.35)}
@@ -91,11 +99,7 @@ header, .intro{
     z-index:10000;
 }
 
-@media (max-width:800px){
-    .container{flex-direction:column}
-    .status{position:static; margin:8px}
-}
-
 @media (max-width:420px){
     .overlay{font-size:0.78rem;padding:6px 8px}
+    .panel-header{font-size:1rem}
 }
