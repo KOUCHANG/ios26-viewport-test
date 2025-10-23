@@ -10,34 +10,22 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: 8491dc9</div>
-            <h1>iOS 26 ビューポート単位 比較デモ</h1>
-            <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
-            各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
-            <p>右上の数値は実際のピクセル高さおよびビューポート API の値です。iOS 26 での挙動を観察してください。</p>
+            <div id="commit-hash">commit: d94cf71</div>
+            <h1>Fixed bar behavior test</h1>
         </section>
 
         <div class="container">
             <div class="panel-simple">
                 <h2>Fixed bar behavior test</h2>
-                <p>下の固定バー内のテキストボックスをタップして、キーボード出現時の位置の変化を確認してください。</p>
-                <p>このページは固定バーの挙動に集中するため、vh/lvh/dvh の比較要素は削除しました。</p>
             </div>
         </div>
 
 
         <!-- fixed bottom bar for keyboard testing (moved to body root for iOS fixed behavior) -->
-        <div class="scroll-filler">
-            <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
-        </div>
+        
     </main>
 
-    <aside class="status">
-        <h3>ビューポート情報</h3>
-        <div>window.innerHeight: <strong id="innerH">--</strong>px</div>
-        <div>visualViewport.height: <strong id="vviewH">--</strong>px</div>
-        <div>visualViewport.offsetTop: <strong id="vviewTop">--</strong>px</div>
-    </aside>
+    <!-- ビューポート情報は不要のため削除しました -->
 
     <div id="fixed-bar" role="dialog" aria-label="固定バー">
         <div class="input-wrap">
@@ -59,10 +47,10 @@
                 const vview = window.visualViewport;
                 const vH = vview ? Math.round(vview.height) : 'n/a';
                 const vTop = vview ? Math.round(vview.offsetTop) : 'n/a';
-                document.getElementById('innerH').textContent = innerH;
-                document.getElementById('clientH').textContent = clientH;
-                document.getElementById('vviewH').textContent = vH;
-                document.getElementById('vviewTop').textContent = vTop;
+                const elInner = document.getElementById('innerH'); if (elInner) elInner.textContent = innerH;
+                const elClient = document.getElementById('clientH'); if (elClient) elClient.textContent = clientH;
+                const elVh = document.getElementById('vviewH'); if (elVh) elVh.textContent = vH;
+                const elVt = document.getElementById('vviewTop'); if (elVt) elVt.textContent = vTop;
                 return {innerH, clientH, vH, vTop, vview};
             }
 
@@ -153,10 +141,14 @@
                     // toggle class for small visual adjustments
                     const keyboardLikely = bottomValue > 80; // heuristic
                     bar.classList.toggle('keyboard-open', keyboardLikely);
+                    // ensure bar is visible
+                    bar.style.display = 'flex';
+                    bar.style.visibility = 'visible';
+                    bar.style.opacity = '1';
                     // If still likely overlapping (URL pill), apply stronger lift
                     if (keyboardLikely) {
-                        // compute a lift height based on bottomValue (cap it)
-                        const liftHeight = Math.min(80, bottomValue + 24);
+                        // compute a stronger lift height based on bottomValue (raise cap)
+                        const liftHeight = Math.min(160, bottomValue + 48);
                         bar.style.setProperty('--lift-y', -(liftHeight) + 'px');
                         bar.classList.toggle('lifted', true);
                     } else {
@@ -179,13 +171,12 @@
                     rafId = requestAnimationFrame(loop);
                 }
 
-                // events
+                // events: rely on resize/orientation and visualViewport; avoid window scroll which can hide/flicker the bar on iOS
                 window.addEventListener('resize', applyBottom);
                 window.addEventListener('orientationchange', () => { applyBottom(); startStrongUpdate(1000); });
-                window.addEventListener('scroll', applyBottom);
                 if (window.visualViewport) {
                     window.visualViewport.addEventListener('resize', () => { applyBottom(); startStrongUpdate(1000); });
-                    window.visualViewport.addEventListener('scroll', applyBottom);
+                    // avoid visualViewport.scroll/ window.scroll to prevent frequent updates while user scrolls
                 }
 
                 // focus/touch: when input gains focus, keep updating while keyboard animates
