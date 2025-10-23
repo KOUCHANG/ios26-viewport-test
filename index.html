@@ -139,7 +139,7 @@
                     if (vview) {
                         const viewportBottomGap = Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height)));
                         // If keyboard is open, gap will be relatively large. Add extra padding to avoid URL pill overlap.
-                        const extraPad = viewportBottomGap > 80 ? 8 : 0; // small extra when keyboard present
+                        const extraPad = viewportBottomGap > 80 ? 36 : 0; // larger extra when keyboard present to avoid URL pill
                         return viewportBottomGap + (window.safeAreaInsetBottom || safeBottom) + extraPad;
                     }
                     // Fallback: no visualViewport -> rely on safe area only
@@ -185,6 +185,12 @@
                     input.addEventListener('blur', () => { applyBottom(); });
                     // touchstart on input area should also trigger update
                     input.addEventListener('touchstart', () => { applyBottom(); startStrongUpdate(800); });
+                    // ensure input is scrolled into view on focus (helps when URL pill overlaps)
+                    input.addEventListener('focus', () => {
+                        setTimeout(() => {
+                            try { input.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { /* ignore */ }
+                        }, 250);
+                    });
                 }
 
                 // initial
