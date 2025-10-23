@@ -3,7 +3,7 @@ body {
     font-family: sans-serif;
     color: #333;
     background-color: #f0f0f0;
-    min-height: 200vh; /* スクロールを発生させるために必要 */
+    /* 各セクションが100%の高さを持つため、bodyにはmin-heightは不要（セクションが自身の高さでスクロールを発生させる） */
 }
 
 header {
@@ -12,6 +12,7 @@ header {
     padding: 20px;
     text-align: center;
     box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    /* headerは固定せず、通常のコンテンツとして流れるようにする */
 }
 
 h1 {
@@ -23,45 +24,46 @@ p {
     margin: 5px 0;
 }
 
-/* 横並びのコンテナ */
-.container {
-    display: flex; /* Flexboxで横並びにする */
+.section {
     width: 100%;
-    /* 各カラムがビューポートの高さいっぱいになるように、コンテナ自体も高さを設定 */
-    /* これが重要！ */
-    height: 100vh; /* 初期値としてvhを設定しておく */
-    
-    /* フォールバックと新しいビューポート単位の適用 */
-    @supports (height: 100lvh) { /* lvhがサポートされていればlvhを優先 */
-        height: 100lvh;
-    }
-    @supports (height: 100dvh) { /* dvhがサポートされていればdvhを優先（最も動的） */
-        height: 100dvh;
-    }
-}
-
-.column {
-    flex: 1; /* 3つのカラムが均等な幅になるように */
-    padding: 10px;
-    box-sizing: border-box; /* paddingを含めた幅と高さで計算 */
-    display: flex;
+    padding: 20px;
+    box-sizing: border-box; /* paddingを含めた高さで計算 */
+    display: flex; 
     flex-direction: column;
-    justify-content: center;
-    align-items: center;
+    justify-content: center; 
+    align-items: center; 
     text-align: center;
-    border-right: 2px solid rgba(0, 0, 0, 0.1);
-    color: white;
-    min-width: 0; /* フレックスアイテムのオーバーフロー対策 */
+    border-bottom: 5px solid rgba(0, 0, 0, 0.1); /* 各セクションの区切り */
+    color: white; 
+    min-height: 100px; /* 最小高さを設定しておくと安心 */
+    /* ここが重要：各セクションがビューポートの高さを基準にする */
 }
 
-.column:last-child {
-    border-right: none; /* 最後のカラムには右ボーダーなし */
-}
-
-.column h2 {
+.section h2 {
     margin-top: 0;
-    font-size: 1.2em; /* スマホで読みやすいように調整 */
+    font-size: 1.5em;
 }
 
-.column p {
-    font-size: 0.8em; /* 説明文
+.section p {
+    font-size: 0.9em;
+    max-width: 80%; 
+}
+
+/* 各セクションの背景色と高さの指定 */
+/* 1つ目のセクション: 100vh */
+.vh-unit {
+    background-color: #FF6347; /* Tomato */
+    height: 100vh; /* 従来のビューポート高さ */
+}
+
+/* 2つ目のセクション: 100lvh */
+.lvh-unit {
+    background-color: #3CB371; /* MediumSeaGreen */
+    height: 100lvh; /* ラージ・ビューポート高さ */
+}
+
+/* 3つ目のセクション: 100dvh */
+.dvh-unit {
+    background-color: #4169E1; /* RoyalBlue */
+    height: 100dvh; /* ダイナミック・ビューポート高さ */
+}
