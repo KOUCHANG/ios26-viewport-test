@@ -95,10 +95,11 @@
                 const visualH = (vview && vview.height) ? vview.height : innerH;
                 const lvh = Math.max(innerH, visualH);
 
-                // Detect mobile devices (iOS/Android) strictly; only then apply JS sizing.
+                // Detect mobile / small-screen environments; use JS sizing when viewport is narrow or touch device
                 const ua = navigator.userAgent || '';
-                const isMobile = /iP(hone|ad|od)|Android/.test(ua) && !/Windows/.test(ua);
-                const needsJsSizing = isMobile;
+                const isMobileUA = /iP(hone|ad|od)|Android/.test(ua) && !/Windows/.test(ua);
+                const isTouch = !!(navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                const needsJsSizing = (window.innerWidth <= 800) || isMobileUA || (isTouch && window.innerWidth <= 1024);
 
                 if (needsJsSizing) {
                     panels.forEach((panel) => {
@@ -130,14 +131,19 @@
             function updateOverlays(vinfo) {
                 const {vview} = vinfo;
                 const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
-                panels.forEach((panel) => {
-                    const rect = panel.getBoundingClientRect();
+                const container = document.querySelector('.container');
+                const containerRect = container.getBoundingClientRect();
+                panels.forEach((panel, idx) => {
                     const unit = panel.getAttribute('data-unit');
                     const overlay = overlays[unit];
                     if (!overlay) return;
-                    // align overlay horizontally with the panel (relative to viewport)
-                    overlay.style.left = Math.max(0, rect.left) + 'px';
-                    overlay.style.width = rect.width + 'px';
+                    // compute left relative to viewport using container scroll and panel.offsetLeft
+                    const offsetLeft = panel.offsetLeft || 0;
+                    const left = Math.round(containerRect.left + offsetLeft - (container.scrollLeft || 0));
+                    const width = Math.min(panel.offsetWidth || panel.getBoundingClientRect().width || window.innerWidth, window.innerWidth);
+                    overlay.style.left = Math.max(0, left) + 'px';
+                    overlay.style.width = Math.max(80, width) + 'px';
+                    overlay.style.display = 'block';
                 });
                 // compute bottom gap (space occupied by browser UI)
                 const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;

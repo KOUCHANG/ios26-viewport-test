@@ -30,6 +30,7 @@ header, .intro{
     gap:var(--gap);
     flex-wrap:nowrap;
     -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
 }
 
 .column{
@@ -107,6 +108,6 @@ header, .intro{
 
 /* On small screens, let each column take full viewport width and allow horizontal swipe */
 @media (max-width:800px) {
-    .container { overflow-x: auto; -webkit-overflow-scrolling: touch; }
-    .column { flex: 0 0 100vw; min-width: 100vw; max-width: 100vw; }
+    .container { overflow-x: auto; -webkit-overflow-scrolling: touch; scroll-snap-type: x mandatory; }
+    .column { flex: 0 0 100vw; min-width: 100vw; max-width: 100vw; scroll-snap-align: start; }
 }
