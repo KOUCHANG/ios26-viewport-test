@@ -14,6 +14,15 @@
     padding: 18px;
 }
 
+/* iOS fix: avoid creating stacking context that breaks position:fixed
+   Avoid transforms on body/html; if other code adds transforms this helps
+   by forcing the fixed-bar to be a child of body and remain fixed. */
+html, body {
+    -webkit-transform: none !important;
+    transform: none !important;
+    -webkit-backface-visibility: hidden;
+}
+
 /* fixed bottom bar for keyboard testing */
 #fixed-bar {
     position: fixed;
@@ -67,6 +76,11 @@
 @media (max-width:420px){
     .overlay{font-size:0.78rem;padding:6px 8px}
     .panel-header{font-size:1rem}
+}
+
+/* Additional iOS-specific adjustment: ensure the fixed bar sits above keyboards and web UI */
+@supports (-webkit-touch-callout: none) {
+    #fixed-bar { position: fixed; }
 }
 
 /* On small screens, let each column take full viewport width and allow horizontal swipe */
