@@ -52,14 +52,8 @@
             </div>
         </div>
 
-        <!-- 固定オーバーレイ（アドレスバー上に見える予定の領域を再現） -->
-        <div class="overlays-wrapper" aria-hidden="true">
-            <div id="overlays">
-                <div class="overlay overlay-vh">固定バー (下部・vh)</div>
-                <div class="overlay overlay-lvh">固定バー (下部・lvh)</div>
-                <div class="overlay overlay-dvh">固定バー (下部・dvh)</div>
-            </div>
-        </div>
+        <!-- overlays will be positioned fixed at viewport bottom and aligned over each panel -->
+        
 
         <div class="scroll-filler">
             <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
@@ -78,11 +72,9 @@
         // ヘルパー: DOM を更新して各パネルとオーバーレイの位置・高さを表示/調整
         (function () {
             const panels = Array.from(document.querySelectorAll('.column'));
-            const overlays = {
-                vh: document.querySelector('.overlay-vh'),
-                lvh: document.querySelector('.overlay-lvh'),
-                dvh: document.querySelector('.overlay-dvh')
-            };
+            // overlays will be looked up at runtime inside refreshAll
+            let overlaysRoot = null;
+            let overlays = {};
 
             function readViewport() {
                 const innerH = window.innerHeight || 0;
@@ -136,28 +128,36 @@
             }
 
             function updateOverlays(vinfo) {
-                // Position fixed overlays so they sit above the bottom browser UI (address/tool bar)
                 const {vview} = vinfo;
-                // compute safe-area bottom
                 const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
                 panels.forEach((panel) => {
                     const rect = panel.getBoundingClientRect();
                     const unit = panel.getAttribute('data-unit');
                     const overlay = overlays[unit];
                     if (!overlay) return;
-                    // align overlay horizontally with the panel
+                    // align overlay horizontally with the panel (relative to viewport)
                     overlay.style.left = Math.max(0, rect.left) + 'px';
                     overlay.style.width = rect.width + 'px';
-                    // Determine bottom offset: visualViewport bottom gap + safe-area
-                    const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
-                    overlay.style.bottom = (bottomUI + (window.safeAreaInsetBottom || safeBottom)) + 'px';
                 });
+                // compute bottom gap (space occupied by browser UI)
+                const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
+                const bottomValue = (bottomUI + (window.safeAreaInsetBottom || safeBottom));
+                Object.values(overlays).forEach(o => { if (o) o.style.bottom = bottomValue + 'px'; });
             }
 
             // 合成: 1フレームでまとめて更新
             function refreshAll() {
                 const vinfo = readViewport();
                 updatePanels(vinfo);
+                // ensure overlays are looked up after DOM has overlays inserted
+                overlaysRoot = overlaysRoot || document.getElementById('overlays-root');
+                if (overlaysRoot && !overlays.vh) {
+                    overlays = {
+                        vh: overlaysRoot.querySelector('.overlay-vh'),
+                        lvh: overlaysRoot.querySelector('.overlay-lvh'),
+                        dvh: overlaysRoot.querySelector('.overlay-dvh')
+                    };
+                }
                 updateOverlays(vinfo);
             }
 
@@ -178,5 +178,11 @@
             }, 250);
         })();
     </script>
+    <!-- fixed overlays (root-level) -->
+    <div id="overlays-root">
+        <div class="overlay overlay-vh">固定バー (vh)</div>
+        <div class="overlay overlay-lvh">固定バー (lvh)</div>
+        <div class="overlay overlay-dvh">固定バー (dvh)</div>
+    </div>
 </body>
 </html>
