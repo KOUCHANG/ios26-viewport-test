@@ -7,53 +7,145 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <header>
-        <h1>iOS 26 ビューポート単位 比較テスト</h1>
-        <p>スクロールしてアドレスバーの表示/非表示を切り替えてください。</p>
-        <p>横並びの各カラムの高さが同時に変化するのを確認できます。</p>
-    </header>
+</header>
 
-    <div class="container">
-        <div class="column vh-unit">
-            <h2>`100vh`</h2>
-            <p>従来のビューポート高さ</p>
-            <p>現在の高さ: <span id="vh-height"></span>px</p>
+    <main>
+        <section class="intro">
+            <h1>iOS 26 ビューポート単位 比較デモ</h1>
+            <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
+            各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
+            <p>右上の数値は実際のピクセル高さおよびビューポート API の値です。iOS 26 での挙動を観察してください。</p>
+        </section>
+
+        <div class="container">
+            <div class="column vh-unit" data-unit="vh">
+                <div class="panel-body">
+                    <div class="panel-header">100vh</div>
+                    <div class="panel-note">従来のビューポート高さ (vh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column lvh-unit" data-unit="lvh">
+                <div class="panel-body">
+                    <div class="panel-header">100lvh</div>
+                    <div class="panel-note">ラージ・ビューポート高さ (lvh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column dvh-unit" data-unit="dvh">
+                <div class="panel-body">
+                    <div class="panel-header">100dvh</div>
+                    <div class="panel-note">ダイナミック・ビューポート高さ (dvh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
         </div>
 
-        <div class="column lvh-unit">
-            <h2>`100lvh`</h2>
-            <p>ラージ・ビューポート高さ</p>
-            <p>現在の高さ: <span id="lvh-height"></span>px</p>
+        <!-- 固定オーバーレイ（アドレスバー上に見える予定の領域を再現） -->
+        <div id="overlays">
+            <div class="overlay overlay-vh">固定バー (上部・vh)</div>
+            <div class="overlay overlay-lvh">固定バー (上部・lvh)</div>
+            <div class="overlay overlay-dvh">固定バー (上部・dvh)</div>
         </div>
 
-        <div class="column dvh-unit">
-            <h2>`100dvh`</h2>
-            <p>ダイナミック・ビューポート高さ</p>
-            <p>現在の高さ: <span id="dvh-height"></span>px</p>
+        <div class="scroll-filler">
+            <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
         </div>
-    </div>
-    
-    <div class="scroll-filler">
-        <p>↓ スクロールするとアドレスバーの形状が変わります ↓</p>
-        <br><br><br><br><br><br><br><br><br><br>
-        <br><br><br><br><br><br><br><br><br><br>
-        <br><br><br><br><br><br><br><br><br><br>
-    </div>
+    </main>
+
+    <aside class="status">
+        <h3>ビューポート情報</h3>
+        <div>window.innerHeight: <strong id="innerH">--</strong>px</div>
+        <div>document.documentElement.clientHeight: <strong id="clientH">--</strong>px</div>
+        <div>visualViewport.height: <strong id="vviewH">--</strong>px</div>
+        <div>visualViewport.offsetTop: <strong id="vviewTop">--</strong>px</div>
+    </aside>
 
     <script>
-        // 各要素の現在の高さを取得し表示するJavaScript
-        function updateHeights() {
-            // 注意: 各カラムの高さは、それぞれに適用されたビューポート単位に基づきます
-            document.getElementById('vh-height').textContent = document.querySelector('.vh-unit').offsetHeight;
-            document.getElementById('lvh-height').textContent = document.querySelector('.lvh-unit').offsetHeight;
-            document.getElementById('dvh-height').textContent = document.querySelector('.dvh-unit').offsetHeight;
-        }
+        // ヘルパー: DOM を更新して各パネルとオーバーレイの位置・高さを表示/調整
+        (function () {
+            const panels = Array.from(document.querySelectorAll('.column'));
+            const overlays = {
+                vh: document.querySelector('.overlay-vh'),
+                lvh: document.querySelector('.overlay-lvh'),
+                dvh: document.querySelector('.overlay-dvh')
+            };
 
-        window.addEventListener('load', updateHeights);
-        window.addEventListener('resize', updateHeights);
-        window.addEventListener('scroll', updateHeights);
-        // iOSでアドレスバーが変化する際に正確に更新されるよう、短い間隔で監視することも有効
-        // setInterval(updateHeights, 100); 
+            function readViewport() {
+                const innerH = window.innerHeight || 0;
+                const clientH = document.documentElement.clientHeight || 0;
+                const vview = window.visualViewport;
+                const vH = vview ? Math.round(vview.height) : 'n/a';
+                const vTop = vview ? Math.round(vview.offsetTop) : 'n/a';
+                document.getElementById('innerH').textContent = innerH;
+                document.getElementById('clientH').textContent = clientH;
+                document.getElementById('vviewH').textContent = vH;
+                document.getElementById('vviewTop').textContent = vTop;
+            }
+
+            function updatePanels() {
+                // update each panel metrics
+                panels.forEach((panel, i) => {
+                    const elemHeight = panel.offsetHeight;
+                    const rectH = Math.round(panel.getBoundingClientRect().height);
+                    panel.querySelector('.elem-height').textContent = elemHeight;
+                    panel.querySelector('.rect-height').textContent = rectH;
+                });
+            }
+
+            function updateOverlays() {
+                // Position fixed overlays so they sit above the bottom browser UI (address/tool bar)
+                panels.forEach((panel) => {
+                    const rect = panel.getBoundingClientRect();
+                    const unit = panel.getAttribute('data-unit');
+                    const overlay = overlays[unit];
+                    if (!overlay) return;
+                    // align overlay horizontally with the panel
+                    overlay.style.left = Math.max(0, rect.left) + 'px';
+                    overlay.style.width = rect.width + 'px';
+                    // Compute bottom offset so overlay sits above bottom browser UI.
+                    // bottomUI = window.innerHeight - (visualViewport.offsetTop + visualViewport.height)
+                    const vview = window.visualViewport;
+                    const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
+                    // Place overlay immediately above the bottom UI (so it appears 'on top' of content, above address bar)
+                    overlay.style.bottom = bottomUI + 'px';
+                });
+            }
+
+            // 合成: 1フレームでまとめて更新
+            function refreshAll() {
+                readViewport();
+                updatePanels();
+                updateOverlays();
+            }
+
+            // Event bindings: resize/scroll/orientationおよび visualViewport のイベントを監視
+            window.addEventListener('load', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('resize', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('orientationchange', () => requestAnimationFrame(refreshAll));
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => requestAnimationFrame(refreshAll));
+                window.visualViewport.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
+            }
+
+            // 少しの間隔で監視して、iOS の UI 変化を確実に捕まえる
+            let tick = 0;
+            setInterval(() => {
+                if (++tick % 5 === 0) requestAnimationFrame(refreshAll);
+            }, 250);
+        })();
     </script>
 </body>
 </html>
