@@ -23,6 +23,10 @@ html, body {
     -webkit-backface-visibility: hidden;
 }
 
+/* Ensure full-height root so fixed elements attach to viewport correctly */
+html, body { height: 100%; }
+body { min-height: 100vh; -webkit-overflow-scrolling: touch; }
+
 /* fixed bottom bar for keyboard testing */
 #fixed-bar {
     position: fixed;
@@ -37,6 +41,10 @@ html, body {
     padding: 8px 12px;
     gap: 8px;
     z-index: 2147483000;
+    /* Promote to its own rendering layer to avoid being clipped by ancestor stacking contexts */
+    -webkit-transform: translateZ(0);
+    transform: translateZ(0);
+    will-change: bottom, transform;
 }
 
 #fixed-bar .input-wrap {
