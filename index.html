@@ -10,7 +10,7 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: cb64138</div>
+            <div id="commit-hash">commit: 8491dc9</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -153,6 +153,16 @@
                     // toggle class for small visual adjustments
                     const keyboardLikely = bottomValue > 80; // heuristic
                     bar.classList.toggle('keyboard-open', keyboardLikely);
+                    // If still likely overlapping (URL pill), apply stronger lift
+                    if (keyboardLikely) {
+                        // compute a lift height based on bottomValue (cap it)
+                        const liftHeight = Math.min(80, bottomValue + 24);
+                        bar.style.setProperty('--lift-y', -(liftHeight) + 'px');
+                        bar.classList.toggle('lifted', true);
+                    } else {
+                        bar.classList.toggle('lifted', false);
+                        bar.style.removeProperty('--lift-y');
+                    }
                 }
 
                 function startStrongUpdate(duration = 800) {
