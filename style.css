@@ -45,6 +45,13 @@ header, .intro{
 .panel-note{font-size:0.85rem; opacity:0.95; margin-bottom:10px}
 .metrics{font-size:0.85rem}
 
+#commit-hash{
+    position:relative;
+    font-size:0.8rem;
+    opacity:0.95;
+    margin-bottom:8px;
+}
+
 .vh-unit{background:#FF6347; height:100vh}
 .lvh-unit{background:#3CB371; height:100lvh}
 .dvh-unit{background:#4169E1; height:100dvh}
@@ -54,7 +61,7 @@ header, .intro{
 .overlay{
     position:fixed;
     pointer-events:none;
-    background:rgba(0,0,0,0.28);
+    background:rgba(0,0,0,0.88); /* make opaque on mobile */
     color:#fff;
     padding:8px 10px;
     font-size:0.85rem;
@@ -62,7 +69,7 @@ header, .intro{
     border-top-right-radius:8px;
     transform:translateY(0);
     transition:bottom 200ms ease, left 200ms ease, width 200ms ease;
-    z-index:9999;
+    z-index:2147483000; /* very high to avoid being clipped */
 }
 
 .overlay-vh{background:rgba(0,0,0,0.35)}

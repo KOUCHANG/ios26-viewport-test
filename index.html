@@ -10,6 +10,7 @@
 
     <main>
         <section class="intro">
+            <div id="commit-hash">commit: cbd52a2</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -53,9 +54,9 @@
 
         <!-- 固定オーバーレイ（アドレスバー上に見える予定の領域を再現） -->
         <div id="overlays">
-            <div class="overlay overlay-vh">固定バー (上部・vh)</div>
-            <div class="overlay overlay-lvh">固定バー (上部・lvh)</div>
-            <div class="overlay overlay-dvh">固定バー (上部・dvh)</div>
+            <div class="overlay overlay-vh">固定バー (下部・vh)</div>
+            <div class="overlay overlay-lvh">固定バー (下部・lvh)</div>
+            <div class="overlay overlay-dvh">固定バー (下部・dvh)</div>
         </div>
 
         <div class="scroll-filler">
@@ -80,6 +81,16 @@
                 lvh: document.querySelector('.overlay-lvh'),
                 dvh: document.querySelector('.overlay-dvh')
             };
+
+            // Ensure overlays are direct children of body to avoid transform/stacking context issues
+            Object.values(overlays).forEach(o => {
+                if (!o) return;
+                if (o.parentElement !== document.body) document.body.appendChild(o);
+                // enforce solid background and high z-index in case CSS was ignored
+                o.style.background = o.style.background || 'rgba(0,0,0,0.9)';
+                o.style.zIndex = o.style.zIndex || '2147483000';
+                o.style.pointerEvents = 'none';
+            });
 
             function readViewport() {
                 const innerH = window.innerHeight || 0;
