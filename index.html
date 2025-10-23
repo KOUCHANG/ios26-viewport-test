@@ -10,7 +10,7 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: 9dcc80a</div>
+            <div id="commit-hash">commit: cb64138</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -139,7 +139,7 @@
                     if (vview) {
                         const viewportBottomGap = Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height)));
                         // If keyboard is open, gap will be relatively large. Add extra padding to avoid URL pill overlap.
-                        const extraPad = viewportBottomGap > 80 ? 8 : 0; // small extra when keyboard present
+                        const extraPad = viewportBottomGap > 80 ? 36 : 0; // larger extra when keyboard present to avoid URL pill
                         return viewportBottomGap + (window.safeAreaInsetBottom || safeBottom) + extraPad;
                     }
                     // Fallback: no visualViewport -> rely on safe area only
@@ -185,6 +185,12 @@
                     input.addEventListener('blur', () => { applyBottom(); });
                     // touchstart on input area should also trigger update
                     input.addEventListener('touchstart', () => { applyBottom(); startStrongUpdate(800); });
+                    // ensure input is scrolled into view on focus (helps when URL pill overlaps)
+                    input.addEventListener('focus', () => {
+                        setTimeout(() => {
+                            try { input.scrollIntoView({ block: 'center', behavior: 'smooth' }); } catch (e) { /* ignore */ }
+                        }, 250);
+                    });
                 }
 
                 // initial
