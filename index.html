@@ -8,41 +8,42 @@
 </head>
 <body>
     <header>
-        <h1>iOS 26 Viewport Unit Comparison</h1>
+        <h1>iOS 26 ビューポート単位 比較テスト</h1>
         <p>スクロールしてアドレスバーの表示/非表示を切り替えてください。</p>
-        <p>各カラムの高さがどのように変化するかを確認できます。</p>
+        <p>横並びの各カラムの高さが同時に変化するのを確認できます。</p>
     </header>
 
     <div class="container">
         <div class="column vh-unit">
             <h2>`100vh`</h2>
-            <p>従来のビューポート高さ。</p>
+            <p>従来のビューポート高さ</p>
             <p>現在の高さ: <span id="vh-height"></span>px</p>
         </div>
 
         <div class="column lvh-unit">
             <h2>`100lvh`</h2>
-            <p>ラージ・ビューポート高さ。</p>
+            <p>ラージ・ビューポート高さ</p>
             <p>現在の高さ: <span id="lvh-height"></span>px</p>
         </div>
 
         <div class="column dvh-unit">
             <h2>`100dvh`</h2>
-            <p>ダイナミック・ビューポート高さ。</p>
+            <p>ダイナミック・ビューポート高さ</p>
             <p>現在の高さ: <span id="dvh-height"></span>px</p>
         </div>
     </div>
     
     <div class="scroll-filler">
-        <p>↓ スクロールしてアドレスバーの挙動を確認 ↓</p>
-        <p>（このコンテンツは画面外にあり、スクロールを促す目的です）</p>
+        <p>↓ スクロールするとアドレスバーの形状が変わります ↓</p>
         <br><br><br><br><br><br><br><br><br><br>
         <br><br><br><br><br><br><br><br><br><br>
         <br><br><br><br><br><br><br><br><br><br>
     </div>
 
     <script>
+        // 各要素の現在の高さを取得し表示するJavaScript
         function updateHeights() {
+            // 注意: 各カラムの高さは、それぞれに適用されたビューポート単位に基づきます
             document.getElementById('vh-height').textContent = document.querySelector('.vh-unit').offsetHeight;
             document.getElementById('lvh-height').textContent = document.querySelector('.lvh-unit').offsetHeight;
             document.getElementById('dvh-height').textContent = document.querySelector('.dvh-unit').offsetHeight;
@@ -50,7 +51,9 @@
 
         window.addEventListener('load', updateHeights);
         window.addEventListener('resize', updateHeights);
-        window.addEventListener('scroll', updateHeights); // スクロール時にも更新
+        window.addEventListener('scroll', updateHeights);
+        // iOSでアドレスバーが変化する際に正確に更新されるよう、短い間隔で監視することも有効
+        // setInterval(updateHeights, 100); 
     </script>
 </body>
 </html>
