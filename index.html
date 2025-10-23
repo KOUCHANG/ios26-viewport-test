@@ -10,7 +10,7 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: b1a8648</div>
+            <div id="commit-hash">commit: 1e0662e</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -131,26 +131,54 @@
             // ヘルパー: 固定バーを visualViewport に追従させる簡易スクリプト
             (function () {
                 const bar = document.getElementById('fixed-bar');
-                function updateBar() {
+                let rafId = null;
+                function computeBottom() {
                     const vview = window.visualViewport;
                     const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
                     const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
-                    const bottomValue = bottomUI + (window.safeAreaInsetBottom || safeBottom);
-                    if (bar) bar.style.bottom = bottomValue + 'px';
-                    // update status
-                    if (document.getElementById('innerH')) document.getElementById('innerH').textContent = window.innerHeight;
-                    if (document.getElementById('vviewH')) document.getElementById('vviewH').textContent = vview ? Math.round(vview.height) : 'n/a';
-                    if (document.getElementById('vviewTop')) document.getElementById('vviewTop').textContent = vview ? Math.round(vview.offsetTop) : 'n/a';
+                    return bottomUI + (window.safeAreaInsetBottom || safeBottom);
                 }
 
-                window.addEventListener('resize', updateBar);
-                window.addEventListener('orientationchange', updateBar);
-                window.addEventListener('scroll', updateBar);
-                if (window.visualViewport) {
-                    window.visualViewport.addEventListener('resize', updateBar);
-                    window.visualViewport.addEventListener('scroll', updateBar);
+                function applyBottom() {
+                    if (!bar) return;
+                    const bottomValue = computeBottom();
+                    bar.style.bottom = bottomValue + 'px';
                 }
+
+                function startStrongUpdate(duration = 800) {
+                    const start = performance.now();
+                    if (rafId) cancelAnimationFrame(rafId);
+                    function loop(now) {
+                        applyBottom();
+                        if (now - start < duration) {
+                            rafId = requestAnimationFrame(loop);
+                        } else {
+                            rafId = null;
+                        }
+                    }
+                    rafId = requestAnimationFrame(loop);
+                }
+
+                // events
+                window.addEventListener('resize', applyBottom);
+                window.addEventListener('orientationchange', () => { applyBottom(); startStrongUpdate(1000); });
+                window.addEventListener('scroll', applyBottom);
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', () => { applyBottom(); startStrongUpdate(1000); });
+                    window.visualViewport.addEventListener('scroll', applyBottom);
+                }
+
+                // focus/touch: when input gains focus, keep updating while keyboard animates
+                const input = document.getElementById('test-input');
+                if (input) {
+                    input.addEventListener('focus', () => { applyBottom(); startStrongUpdate(1200); });
+                    input.addEventListener('blur', () => { applyBottom(); });
+                    // touchstart on input area should also trigger update
+                    input.addEventListener('touchstart', () => { applyBottom(); startStrongUpdate(800); });
+                }
+
                 // initial
-                setTimeout(updateBar, 200);
+                applyBottom();
+                setTimeout(applyBottom, 200);
             })();
         })();
