@@ -3,6 +3,7 @@ body {
     font-family: sans-serif;
     color: #333;
     background-color: #f0f0f0;
+    min-height: 200vh; /* スクロールを発生させるために必要 */
 }
 
 header {
@@ -22,42 +23,45 @@ p {
     margin: 5px 0;
 }
 
-.section {
+/* 横並びのコンテナ */
+.container {
+    display: flex; /* Flexboxで横並びにする */
     width: 100%;
-    padding: 20px;
-    box-sizing: border-box; /* paddingを含めた高さで計算 */
-    display: flex; /* 子要素を中央揃えにするため */
+    /* 各カラムがビューポートの高さいっぱいになるように、コンテナ自体も高さを設定 */
+    /* これが重要！ */
+    height: 100vh; /* 初期値としてvhを設定しておく */
+    
+    /* フォールバックと新しいビューポート単位の適用 */
+    @supports (height: 100lvh) { /* lvhがサポートされていればlvhを優先 */
+        height: 100lvh;
+    }
+    @supports (height: 100dvh) { /* dvhがサポートされていればdvhを優先（最も動的） */
+        height: 100dvh;
+    }
+}
+
+.column {
+    flex: 1; /* 3つのカラムが均等な幅になるように */
+    padding: 10px;
+    box-sizing: border-box; /* paddingを含めた幅と高さで計算 */
+    display: flex;
     flex-direction: column;
-    justify-content: center; /* 垂直方向中央 */
-    align-items: center; /* 水平方向中央 */
+    justify-content: center;
+    align-items: center;
     text-align: center;
-    border-bottom: 5px solid rgba(0, 0, 0, 0.1);
-    color: white; /* テキスト色 */
-    min-height: 150px; /* 最小高さを設定しておくと安心 */
+    border-right: 2px solid rgba(0, 0, 0, 0.1);
+    color: white;
+    min-width: 0; /* フレックスアイテムのオーバーフロー対策 */
 }
 
-.section h2 {
+.column:last-child {
+    border-right: none; /* 最後のカラムには右ボーダーなし */
+}
+
+.column h2 {
     margin-top: 0;
-    font-size: 1.5em;
+    font-size: 1.2em; /* スマホで読みやすいように調整 */
 }
 
-.section p {
-    font-size: 0.9em;
-    max-width: 80%; /* テキストが長くなりすぎないように */
-}
-
-/* 各セクションの背景色 */
-.vh-unit {
-    background-color: #FF6347; /* Tomato */
-    height: 100vh; /* 従来のビューポート高さ */
-}
-
-.lvh-unit {
-    background-color: #3CB371; /* MediumSeaGreen */
-    height: 100lvh; /* ラージ・ビューポート高さ */
-}
-
-.dvh-unit {
-    background-color: #4169E1; /* RoyalBlue */
-    height: 100dvh; /* ダイナミック・ビューポート高さ */
-}
+.column p {
+    font-size: 0.8em; /* 説明文

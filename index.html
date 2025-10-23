@@ -3,47 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>iOS 26 Viewport Comparison</title>
+    <title>iOS 26 Viewport Horizontal Comparison</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
     <header>
         <h1>iOS 26 Viewport Unit Comparison</h1>
         <p>スクロールしてアドレスバーの表示/非表示を切り替えてください。</p>
-        <p>各セクションの高さがどのように変化するかを確認できます。</p>
+        <p>各カラムの高さがどのように変化するかを確認できます。</p>
     </header>
 
-    <div class="section vh-unit">
-        <h2>Section 1: `height: 100vh;`</h2>
-        <p>従来のビューポート高さ。<br>iOS 26 Safariでアドレスバーが表示されている時に、画面下端からはみ出す可能性があります。</p>
-        <p>現在の高さ: <span id="vh-height"></span>px</p>
-    </div>
+    <div class="container">
+        <div class="column vh-unit">
+            <h2>`100vh`</h2>
+            <p>従来のビューポート高さ。</p>
+            <p>現在の高さ: <span id="vh-height"></span>px</p>
+        </div>
 
-    <div class="section lvh-unit">
-        <h2>Section 2: `height: 100lvh;`</h2>
-        <p>ラージ・ビューポート高さ。<br>アドレスバーが完全に非表示の場合の画面高さです。アドレスバーが表示されていてもこの値で固定されるため、はみ出しや余白の問題が生じる場合があります。</p>
-        <p>現在の高さ: <span id="lvh-height"></span>px</p>
-    </div>
+        <div class="column lvh-unit">
+            <h2>`100lvh`</h2>
+            <p>ラージ・ビューポート高さ。</p>
+            <p>現在の高さ: <span id="lvh-height"></span>px</p>
+        </div>
 
-    <div class="section dvh-unit">
-        <h2>Section 3: `height: 100dvh;`</h2>
-        <p>ダイナミック・ビューポート高さ。<br>アドレスバーの表示/非表示に合わせて、リアルタイムで高さが動的に変化します。iOS 26 Safariにおける最適な選択肢と考えられます。</p>
-        <p>現在の高さ: <span id="dvh-height"></span>px</p>
+        <div class="column dvh-unit">
+            <h2>`100dvh`</h2>
+            <p>ダイナミック・ビューポート高さ。</p>
+            <p>現在の高さ: <span id="dvh-height"></span>px</p>
+        </div>
+    </div>
+    
+    <div class="scroll-filler">
+        <p>↓ スクロールしてアドレスバーの挙動を確認 ↓</p>
+        <p>（このコンテンツは画面外にあり、スクロールを促す目的です）</p>
+        <br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br>
+        <br><br><br><br><br><br><br><br><br><br>
     </div>
 
     <script>
-        // 各要素の現在の高さを表示するためのJavaScript
         function updateHeights() {
             document.getElementById('vh-height').textContent = document.querySelector('.vh-unit').offsetHeight;
             document.getElementById('lvh-height').textContent = document.querySelector('.lvh-unit').offsetHeight;
             document.getElementById('dvh-height').textContent = document.querySelector('.dvh-unit').offsetHeight;
         }
 
-        // 初期ロード時とウィンドウサイズ変更時に高さを更新
         window.addEventListener('load', updateHeights);
         window.addEventListener('resize', updateHeights);
-        // スクロール時（アドレスバーの表示/非表示が切り替わる可能性あり）にも高さを更新
-        window.addEventListener('scroll', updateHeights);
+        window.addEventListener('scroll', updateHeights); // スクロール時にも更新
     </script>
 </body>
 </html>
