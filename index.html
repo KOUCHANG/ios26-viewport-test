@@ -10,7 +10,7 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: 1e0662e</div>
+            <div id="commit-hash">commit: 9dcc80a</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -135,14 +135,24 @@
                 function computeBottom() {
                     const vview = window.visualViewport;
                     const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
-                    const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
-                    return bottomUI + (window.safeAreaInsetBottom || safeBottom);
+                    // If visualViewport is available, compute keyboard/overlay height as the difference
+                    if (vview) {
+                        const viewportBottomGap = Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height)));
+                        // If keyboard is open, gap will be relatively large. Add extra padding to avoid URL pill overlap.
+                        const extraPad = viewportBottomGap > 80 ? 8 : 0; // small extra when keyboard present
+                        return viewportBottomGap + (window.safeAreaInsetBottom || safeBottom) + extraPad;
+                    }
+                    // Fallback: no visualViewport -> rely on safe area only
+                    return (window.safeAreaInsetBottom || safeBottom);
                 }
 
                 function applyBottom() {
                     if (!bar) return;
                     const bottomValue = computeBottom();
                     bar.style.bottom = bottomValue + 'px';
+                    // toggle class for small visual adjustments
+                    const keyboardLikely = bottomValue > 80; // heuristic
+                    bar.classList.toggle('keyboard-open', keyboardLikely);
                 }
 
                 function startStrongUpdate(duration = 800) {
