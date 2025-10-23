@@ -1,0 +1,67 @@
+body {
+    margin: 0;
+    padding: 0;
+    font-family: sans-serif;
+    color: white;
+    /* スクロールを発生させるための最小高さを設定 */
+    min-height: 200vh; 
+}
+
+h1 {
+    color: #333;
+    padding: 10px;
+}
+
+.test-container {
+    width: 100%;
+    /* 要素を固定配置にし、ビューポートの「上端」からのずれを確認 */
+    position: fixed; 
+    top: 0; 
+    left: 0;
+    padding: 20px;
+    box-sizing: border-box;
+    /* 他の要素との重なり順序を調整 */
+    z-index: 100; 
+    opacity: 0.9;
+    transition: background-color 0.5s;
+}
+
+/* 従来の 100vh */
+.vh-unit {
+    height: 100vh;
+    background-color: rgba(255, 99, 71, 0.7); /* Tomato */
+}
+
+/* ラージ・ビューポート高さ（ツールバー非表示時の最大値に近い） */
+.lvh-unit {
+    /* 100vhとの違いをわかりやすくするため、少し小さく設定 */
+    height: 90lvh; 
+    background-color: rgba(60, 179, 113, 0.7); /* MediumSeaGreen */
+    /* 重ねて比較するために、VHの上に表示 */
+    z-index: 110; 
+}
+
+/* ダイナミック・ビューポート高さ（ツールバーに合わせて動的に変化） */
+.dvh-unit {
+    /* 100vhとの違いをわかりやすくするため、さらに小さく設定 */
+    height: 80dvh; 
+    background-color: rgba(65, 105, 225, 0.7); /* RoyalBlue */
+    /* 一番上に表示 */
+    z-index: 120; 
+}
+
+.scroll-filler {
+    position: absolute;
+    top: 120vh; /* 画面外に配置してスクロールを促す */
+    width: 100%;
+    color: #333;
+    text-align: center;
+    font-size: 1.2em;
+    z-index: 1;
+}
+
+/* テキストが読めるようにヘッダーのスタイルを調整 */
+.test-container h2, .test-container p {
+    color: white;
+    margin: 5px 0;
+}
