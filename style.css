@@ -1,0 +1,114 @@
+:root{
+    --gap: 8px;
+    --safe-bottom: env(safe-area-inset-bottom);
+}
+
+*{box-sizing: border-box}
+
+body{
+    margin:0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+    color:#222;
+    background: linear-gradient(180deg,#f6f8fb,#eef3f8);
+    min-height:200vh; /* Scrollable so address bar can hide */
+}
+
+header, .intro{
+    background:#107a52;
+    color:#fff;
+    padding:18px 14px;
+    text-align:center;
+    box-shadow:0 2px 8px rgba(16,122,82,0.12);
+}
+
+.intro h1{margin:0 0 6px;font-size:1.25rem}
+.intro p{margin:0 6px;font-size:0.9rem;opacity:0.95}
+
+.container{
+    display:flex;
+    width:100%;
+    gap:var(--gap);
+    flex-wrap:nowrap;
+    -webkit-overflow-scrolling: touch;
+    overflow-x: visible;
+}
+
+.column{
+    flex:1 1 0; /* equal columns for desktop */
+    min-width:0;
+    max-width:none;
+    position:relative;
+    color:#fff;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+}
+
+.panel-body{padding:18px; text-align:center}
+.panel-header{font-size:1.1rem; font-weight:600; margin-bottom:6px}
+.panel-note{font-size:0.85rem; opacity:0.95; margin-bottom:10px}
+.metrics{font-size:0.85rem}
+
+#commit-hash{
+    position:relative;
+    font-size:0.8rem;
+    opacity:0.95;
+    margin-bottom:8px;
+}
+
+.vh-unit{background:#FF6347; height:100vh}
+.lvh-unit{background:#3CB371; height:100lvh}
+.dvh-unit{background:#4169E1; height:100dvh}
+
+/* panel internal overlay removed — using fixed overlays at viewport bottom */
+
+/* 固定オーバーレイ（上部に被せるバー） */
+.overlays-wrapper{position:fixed;left:0;right:0;bottom:0;height:auto;pointer-events:none}
+#overlays-root{position:fixed;left:0;right:0;bottom:0;height:auto;pointer-events:none;z-index:2147483000}
+/* #overlays{display:none} */ /* Commenting out to ensure overlay elements are visible */
+.overlay{
+    position:fixed;
+    pointer-events:none;
+    background:rgba(0,0,0,0.88); /* make opaque on mobile */
+    color:#fff;
+    padding:8px 10px;
+    font-size:0.85rem;
+    border-top-left-radius:8px;
+    border-top-right-radius:8px;
+    transform:translateY(0);
+    transition:bottom 200ms ease, left 200ms ease, width 200ms ease;
+    z-index:2147483000; /* very high to avoid being clipped */
+    box-shadow:0 6px 18px rgba(0,0,0,0.25);
+}
+
+.overlay-vh{background:rgba(0,0,0,0.35)}
+.overlay-lvh{background:rgba(0,0,0,0.45)}
+.overlay-dvh{background:rgba(0,0,0,0.55)}
+
+.scroll-filler{height:120vh; display:flex; align-items:flex-start; justify-content:center; padding-top:28px; color:#444}
+
+.status{
+    position:fixed;
+    right:12px;
+    top:12px;
+    background:rgba(255,255,255,0.96);
+    border-radius:8px;
+    padding:10px 12px;
+    box-shadow:0 6px 18px rgba(17,24,39,0.08);
+    font-size:0.85rem;
+    color:#111;
+    z-index:10000;
+}
+
+@media (max-width:420px){
+    .overlay{font-size:0.78rem;padding:6px 8px}
+    .panel-header{font-size:1rem}
+}
+
+/* On small screens, let each column take full viewport width and allow horizontal swipe */
+@media (max-width:800px) {
+    /* Show all three columns side-by-side even on small screens */
+    .container { overflow-x: visible; -webkit-overflow-scrolling: touch; }
+    .column { flex: 1 1 0; min-width: 0; max-width: 33.333%; }
+}

@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>iOS 26 Viewport Horizontal Comparison</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <main>
+        <section class="intro">
+            <div id="commit-hash">commit: f664122</div>
+            <h1>iOS 26 ビューポート単位 比較デモ</h1>
+            <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
+            各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
+            <p>右上の数値は実際のピクセル高さおよびビューポート API の値です。iOS 26 での挙動を観察してください。</p>
+        </section>
+
+        <div class="container">
+            <div class="column vh-unit" data-unit="vh">
+                <div class="panel-body">
+                    <div class="panel-header">100vh</div>
+                    <div class="panel-note">従来のビューポート高さ (vh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column lvh-unit" data-unit="lvh">
+                <div class="panel-body">
+                    <div class="panel-header">100lvh</div>
+                    <div class="panel-note">ラージ・ビューポート高さ (lvh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="column dvh-unit" data-unit="dvh">
+                <div class="panel-body">
+                    <div class="panel-header">100dvh</div>
+                    <div class="panel-note">ダイナミック・ビューポート高さ (dvh)</div>
+                    <div class="metrics">
+                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
+                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- overlays will be positioned fixed at viewport bottom and aligned over each panel -->
+        
+
+        <div class="scroll-filler">
+            <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
+        </div>
+    </main>
+
+    <aside class="status">
+        <h3>ビューポート情報</h3>
+        <div>window.innerHeight: <strong id="innerH">--</strong>px</div>
+        <div>document.documentElement.clientHeight: <strong id="clientH">--</strong>px</div>
+        <div>visualViewport.height: <strong id="vviewH">--</strong>px</div>
+        <div>visualViewport.offsetTop: <strong id="vviewTop">--</strong>px</div>
+    </aside>
+
+    <script>
+        // ヘルパー: DOM を更新して各パネルとオーバーレイの位置・高さを表示/調整
+        (function () {
+            const panels = Array.from(document.querySelectorAll('.column'));
+            // overlays will be looked up at runtime inside refreshAll
+            let overlaysRoot = null;
+            let overlays = {};
+
+            function readViewport() {
+                const innerH = window.innerHeight || 0;
+                const clientH = document.documentElement.clientHeight || 0;
+                const vview = window.visualViewport;
+                const vH = vview ? Math.round(vview.height) : 'n/a';
+                const vTop = vview ? Math.round(vview.offsetTop) : 'n/a';
+                document.getElementById('innerH').textContent = innerH;
+                document.getElementById('clientH').textContent = clientH;
+                document.getElementById('vviewH').textContent = vH;
+                document.getElementById('vviewTop').textContent = vTop;
+                return {innerH, clientH, vH, vTop, vview};
+            }
+
+            function updatePanels(vinfo) {
+                // Set heights explicitly only on mobile or platforms with unstable CSS viewport units.
+                const {innerH, vH, vview} = vinfo;
+                const visualH = (vview && vview.height) ? vview.height : innerH;
+                const lvh = Math.max(innerH, visualH);
+
+                // Detect mobile / small-screen environments; use JS sizing when viewport is narrow or touch device
+                const ua = navigator.userAgent || '';
+                const isMobileUA = /iP(hone|ad|od)|Android/.test(ua) && !/Windows/.test(ua);
+                const isTouch = !!(navigator.maxTouchPoints && navigator.maxTouchPoints > 0);
+                const needsJsSizing = (window.innerWidth <= 800) || isMobileUA || (isTouch && window.innerWidth <= 1024);
+
+                if (needsJsSizing) {
+                    panels.forEach((panel) => {
+                        const unit = panel.getAttribute('data-unit');
+                        if (unit === 'vh') {
+                            panel.style.height = innerH + 'px';
+                        } else if (unit === 'lvh') {
+                            panel.style.height = lvh + 'px';
+                        } else if (unit === 'dvh') {
+                            panel.style.height = Math.round(visualH) + 'px';
+                        }
+                        const elemHeight = panel.offsetHeight;
+                        const rectH = Math.round(panel.getBoundingClientRect().height);
+                        panel.querySelector('.elem-height').textContent = elemHeight;
+                        panel.querySelector('.rect-height').textContent = rectH;
+                    });
+                } else {
+                    // Desktop browsers: prefer CSS (clear any JS-set heights)
+                    panels.forEach((panel) => {
+                        panel.style.height = '';
+                        const elemHeight = panel.offsetHeight;
+                        const rectH = Math.round(panel.getBoundingClientRect().height);
+                        panel.querySelector('.elem-height').textContent = elemHeight;
+                        panel.querySelector('.rect-height').textContent = rectH;
+                    });
+                }
+            }
+
+            function updateOverlays(vinfo) {
+                const {vview} = vinfo;
+                const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
+                const container = document.querySelector('.container');
+                const containerRect = container.getBoundingClientRect();
+                panels.forEach((panel, idx) => {
+                    const unit = panel.getAttribute('data-unit');
+                    const overlay = overlays[unit];
+                    if (!overlay) return;
+                    // compute left relative to viewport using container scroll and panel.offsetLeft
+                    const offsetLeft = panel.offsetLeft || 0;
+                    const left = Math.round(containerRect.left + offsetLeft - (container.scrollLeft || 0));
+                    const width = Math.min(panel.offsetWidth || panel.getBoundingClientRect().width || window.innerWidth, window.innerWidth);
+                    overlay.style.left = Math.max(0, left) + 'px';
+                    overlay.style.width = Math.max(80, width) + 'px';
+                    overlay.style.display = 'block';
+                });
+                // compute bottom gap (space occupied by browser UI)
+                const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
+                const bottomValue = (bottomUI + (window.safeAreaInsetBottom || safeBottom));
+                Object.values(overlays).forEach(o => { if (o) o.style.bottom = bottomValue + 'px'; });
+            }
+
+            // 合成: 1フレームでまとめて更新
+            function refreshAll() {
+                const vinfo = readViewport();
+                updatePanels(vinfo);
+                // ensure overlays are looked up after DOM has overlays inserted
+                overlaysRoot = overlaysRoot || document.getElementById('overlays-root');
+                if (overlaysRoot && !overlays.vh) {
+                    overlays = {
+                        vh: overlaysRoot.querySelector('.overlay-vh'),
+                        lvh: overlaysRoot.querySelector('.overlay-lvh'),
+                        dvh: overlaysRoot.querySelector('.overlay-dvh')
+                    };
+                }
+                updateOverlays(vinfo);
+            }
+
+            // Event bindings: resize/scroll/orientationおよび visualViewport のイベントを監視
+            window.addEventListener('load', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('resize', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
+            window.addEventListener('orientationchange', () => requestAnimationFrame(refreshAll));
+            if (window.visualViewport) {
+                window.visualViewport.addEventListener('resize', () => requestAnimationFrame(refreshAll));
+                window.visualViewport.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
+            }
+
+            // 少しの間隔で監視して、iOS の UI 変化を確実に捕まえる
+            let tick = 0;
+            setInterval(() => {
+                if (++tick % 5 === 0) requestAnimationFrame(refreshAll);
+            }, 250);
+        })();
+    </script>
+    <!-- fixed overlays (root-level) -->
+    <div id="overlays-root">
+        <div class="overlay overlay-vh">固定バー (vh)</div>
+        <div class="overlay overlay-lvh">固定バー (lvh)</div>
+        <div class="overlay overlay-dvh">固定バー (dvh)</div>
+    </div>
+</body>
+</html>
