@@ -10,7 +10,7 @@
 
     <main>
         <section class="intro">
-            <div id="commit-hash">commit: f664122</div>
+            <div id="commit-hash">commit: 5afb6e8</div>
             <h1>iOS 26 ビューポート単位 比較デモ</h1>
             <p>下にスクロールして、ブラウザのアドレスバーの表示/非表示を切り替えてください。<br>
             各カラムはそれぞれ <code>100vh</code> / <code>100lvh</code> / <code>100dvh</code> を使って高さを決めています。</p>
@@ -18,43 +18,20 @@
         </section>
 
         <div class="container">
-            <div class="column vh-unit" data-unit="vh">
-                <div class="panel-body">
-                    <div class="panel-header">100vh</div>
-                    <div class="panel-note">従来のビューポート高さ (vh)</div>
-                    <div class="metrics">
-                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
-                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="column lvh-unit" data-unit="lvh">
-                <div class="panel-body">
-                    <div class="panel-header">100lvh</div>
-                    <div class="panel-note">ラージ・ビューポート高さ (lvh)</div>
-                    <div class="metrics">
-                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
-                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="column dvh-unit" data-unit="dvh">
-                <div class="panel-body">
-                    <div class="panel-header">100dvh</div>
-                    <div class="panel-note">ダイナミック・ビューポート高さ (dvh)</div>
-                    <div class="metrics">
-                        <div>要素高さ: <strong><span class="elem-height">--</span>px</strong></div>
-                        <div>getBoundingClientRect: <strong><span class="rect-height">--</span>px</strong></div>
-                    </div>
-                </div>
+            <div class="panel-simple">
+                <h2>Fixed bar behavior test</h2>
+                <p>下の固定バー内のテキストボックスをタップして、キーボード出現時の位置の変化を確認してください。</p>
+                <p>このページは固定バーの挙動に集中するため、vh/lvh/dvh の比較要素は削除しました。</p>
             </div>
         </div>
 
-        <!-- overlays will be positioned fixed at viewport bottom and aligned over each panel -->
-        
 
+        <!-- fixed bottom bar for keyboard testing -->
+        <div id="fixed-bar" role="dialog" aria-label="固定バー">
+            <div class="input-wrap">
+                <input id="test-input" type="text" placeholder="ここをタップしてキーボードを出してみてください" autocomplete="off">
+            </div>
+        </div>
         <div class="scroll-filler">
             <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
         </div>
@@ -63,7 +40,6 @@
     <aside class="status">
         <h3>ビューポート情報</h3>
         <div>window.innerHeight: <strong id="innerH">--</strong>px</div>
-        <div>document.documentElement.clientHeight: <strong id="clientH">--</strong>px</div>
         <div>visualViewport.height: <strong id="vviewH">--</strong>px</div>
         <div>visualViewport.offsetTop: <strong id="vviewTop">--</strong>px</div>
     </aside>
@@ -151,44 +127,29 @@
                 Object.values(overlays).forEach(o => { if (o) o.style.bottom = bottomValue + 'px'; });
             }
 
-            // 合成: 1フレームでまとめて更新
-            function refreshAll() {
-                const vinfo = readViewport();
-                updatePanels(vinfo);
-                // ensure overlays are looked up after DOM has overlays inserted
-                overlaysRoot = overlaysRoot || document.getElementById('overlays-root');
-                if (overlaysRoot && !overlays.vh) {
-                    overlays = {
-                        vh: overlaysRoot.querySelector('.overlay-vh'),
-                        lvh: overlaysRoot.querySelector('.overlay-lvh'),
-                        dvh: overlaysRoot.querySelector('.overlay-dvh')
-                    };
+            // ヘルパー: 固定バーを visualViewport に追従させる簡易スクリプト
+            (function () {
+                const bar = document.getElementById('fixed-bar');
+                function updateBar() {
+                    const vview = window.visualViewport;
+                    const safeBottom = parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--safe-bottom')) || 0;
+                    const bottomUI = vview ? Math.max(0, Math.round(window.innerHeight - (vview.offsetTop + vview.height))) : 0;
+                    const bottomValue = bottomUI + (window.safeAreaInsetBottom || safeBottom);
+                    if (bar) bar.style.bottom = bottomValue + 'px';
+                    // update status
+                    if (document.getElementById('innerH')) document.getElementById('innerH').textContent = window.innerHeight;
+                    if (document.getElementById('vviewH')) document.getElementById('vviewH').textContent = vview ? Math.round(vview.height) : 'n/a';
+                    if (document.getElementById('vviewTop')) document.getElementById('vviewTop').textContent = vview ? Math.round(vview.offsetTop) : 'n/a';
                 }
-                updateOverlays(vinfo);
-            }
 
-            // Event bindings: resize/scroll/orientationおよび visualViewport のイベントを監視
-            window.addEventListener('load', () => requestAnimationFrame(refreshAll));
-            window.addEventListener('resize', () => requestAnimationFrame(refreshAll));
-            window.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
-            window.addEventListener('orientationchange', () => requestAnimationFrame(refreshAll));
-            if (window.visualViewport) {
-                window.visualViewport.addEventListener('resize', () => requestAnimationFrame(refreshAll));
-                window.visualViewport.addEventListener('scroll', () => requestAnimationFrame(refreshAll));
-            }
-
-            // 少しの間隔で監視して、iOS の UI 変化を確実に捕まえる
-            let tick = 0;
-            setInterval(() => {
-                if (++tick % 5 === 0) requestAnimationFrame(refreshAll);
-            }, 250);
+                window.addEventListener('resize', updateBar);
+                window.addEventListener('orientationchange', updateBar);
+                window.addEventListener('scroll', updateBar);
+                if (window.visualViewport) {
+                    window.visualViewport.addEventListener('resize', updateBar);
+                    window.visualViewport.addEventListener('scroll', updateBar);
+                }
+                // initial
+                setTimeout(updateBar, 200);
+            })();
         })();
-    </script>
-    <!-- fixed overlays (root-level) -->
-    <div id="overlays-root">
-        <div class="overlay overlay-vh">固定バー (vh)</div>
-        <div class="overlay overlay-lvh">固定バー (lvh)</div>
-        <div class="overlay overlay-dvh">固定バー (dvh)</div>
-    </div>
-</body>
-</html>
