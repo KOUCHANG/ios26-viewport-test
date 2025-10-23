@@ -86,6 +86,9 @@ header, .intro{
 
 @media (max-width:800px){
     .container{flex-direction:column}
-    .overlay{display:none}
     .status{position:static; margin:8px}
+}
+
+@media (max-width:420px){
+    .overlay{font-size:0.78rem;padding:6px 8px}
 }
