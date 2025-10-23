@@ -1,0 +1,43 @@
+name: Deploy site with commit hash
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set git user
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Get short commit
+        id: vars
+        run: echo "short=$(git rev-parse --short=7 HEAD)" >> $GITHUB_OUTPUT
+
+      - name: Inject commit hash into index.html
+        run: |
+          SHORT=${{ steps.vars.outputs.short }}
+          echo "Injecting commit $SHORT into index.html"
+          if grep -q 'id="commit-hash"' index.html; then
+            perl -0777 -pe "s|<div id=\"commit-hash\">.*?</div>|<div id=\"commit-hash\">commit: ${SHORT}</div>|s" -i index.html
+          else
+            perl -0777 -pe "s|(<body[^>]*>)|\$1\n    <div id=\"commit-hash\">commit: ${SHORT}</div>|" -i index.html
+          fi
+
+      - name: Publish to gh-pages
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./
