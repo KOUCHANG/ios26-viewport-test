@@ -153,6 +153,16 @@
                     // toggle class for small visual adjustments
                     const keyboardLikely = bottomValue > 80; // heuristic
                     bar.classList.toggle('keyboard-open', keyboardLikely);
+                    // If still likely overlapping (URL pill), apply stronger lift
+                    if (keyboardLikely) {
+                        // compute a lift height based on bottomValue (cap it)
+                        const liftHeight = Math.min(80, bottomValue + 24);
+                        bar.style.setProperty('--lift-y', -(liftHeight) + 'px');
+                        bar.classList.toggle('lifted', true);
+                    } else {
+                        bar.classList.toggle('lifted', false);
+                        bar.style.removeProperty('--lift-y');
+                    }
                 }
 
                 function startStrongUpdate(duration = 800) {

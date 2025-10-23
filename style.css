@@ -52,6 +52,12 @@ body { min-height: 100vh; -webkit-overflow-scrolling: touch; }
     padding-bottom: 28px; /* extra space when keyboard is present to avoid URL pill overlap */
 }
 
+/* Stronger lift: when keyboard and URL pill still overlap, translate the bar upward */
+#fixed-bar.lifted{
+    transition: transform 220ms ease;
+    transform: translateY(var(--lift-y, -48px));
+}
+
 #fixed-bar .input-wrap {
     flex: 1 1 auto;
 }
