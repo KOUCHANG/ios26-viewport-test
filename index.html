@@ -26,12 +26,7 @@
         </div>
 
 
-        <!-- fixed bottom bar for keyboard testing -->
-        <div id="fixed-bar" role="dialog" aria-label="固定バー">
-            <div class="input-wrap">
-                <input id="test-input" type="text" placeholder="ここをタップしてキーボードを出してみてください" autocomplete="off">
-            </div>
-        </div>
+        <!-- fixed bottom bar for keyboard testing (moved to body root for iOS fixed behavior) -->
         <div class="scroll-filler">
             <p>↓ スクロールしてアドレスバーの表示/非表示を切り替えてください ↓</p>
         </div>
@@ -43,6 +38,12 @@
         <div>visualViewport.height: <strong id="vviewH">--</strong>px</div>
         <div>visualViewport.offsetTop: <strong id="vviewTop">--</strong>px</div>
     </aside>
+
+    <div id="fixed-bar" role="dialog" aria-label="固定バー">
+        <div class="input-wrap">
+            <input id="test-input" type="text" placeholder="ここをタップしてキーボードを出してみてください" autocomplete="off">
+        </div>
+    </div>
 
     <script>
         // ヘルパー: DOM を更新して各パネルとオーバーレイの位置・高さを表示/調整
